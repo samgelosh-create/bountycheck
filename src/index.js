@@ -12,7 +12,9 @@ import { generated_at, records, stats, lookup, sample } from '../lib/dataset.mjs
 import { liveCheck, GithubError } from '../lib/github.mjs';
 import { parseIssueRef } from '../lib/ref.mjs';
 import { landingHtml, llmsTxt, openapi, reportHtml } from '../lib/docs.mjs';
-import { REPORT_TOKEN } from '../lib/private.mjs';
+import { REPORT_TOKEN, KIT_TOKEN, KIT_STRIPE_LINK } from '../lib/private.mjs';
+import { preflightSafe, validateTarget } from '../lib/preflight.mjs';
+import { kitHtml, kitTeaserHtml } from '../lib/kit.mjs';
 
 const app = new Hono();
 
@@ -72,7 +74,46 @@ const routes = {
       }),
     },
   },
+  'GET /v1/x402/preflight': {
+    accepts: accepts(PRICES.preflight.display),
+    description:
+      'Preflight an x402 endpoint: makes one unpaid GET to ?url= and reports whether it returns a well-formed x402 payment challenge (decoded price, network, asset, payTo) plus any problems found.',
+    mimeType: 'application/json',
+    unpaidResponseBody: unpaid(PRICES.preflight),
+    extensions: {
+      ...declareDiscoveryExtension({
+        input: { url: 'https://example.com/paid/route' },
+        inputSchema: {
+          properties: { url: { type: 'string', description: 'Public https URL of the endpoint to check' } },
+          required: ['url'],
+        },
+        output: {
+          example: {
+            url: 'https://example.com/paid/route',
+            reachable: true,
+            is_x402: true,
+            x402_version: 2,
+            status: 402,
+            accepts: [{ scheme: 'exact', network: 'eip155:8453', amount: '10000', price_usd: 0.01 }],
+            problems: [],
+          },
+        },
+      }),
+    },
+  },
 };
+
+// Bad targets are rejected for free, before the paywall, so nobody pays for a request that cannot run.
+app.use('/v1/x402/preflight', async (c, next) => {
+  const target = validateTarget(c.req.query('url') || '');
+  if (!target.ok) {
+    return c.json(
+      { error: 'bad_target', reason: target.reason, hint: 'Use ?url=https://host/path of a public https endpoint' },
+      400,
+    );
+  }
+  await next();
+});
 
 // Settlement runs only after the handler returns; the middleware skips settlement for status >= 400.
 app.use(paymentMiddleware(routes, resourceServer));
@@ -134,10 +175,11 @@ const SITE = 'https://bountycheck.vercel.app';
 app.get('/robots.txt', (c) => c.text(`User-agent: *
 Allow: /
 Disallow: /report/
+Disallow: /kit/
 Sitemap: ${SITE}/sitemap.xml
 `));
 app.get('/sitemap.xml', (c) => {
-  const urls = ['/', '/llms.txt', '/openapi.json', '/v1/stats', '/v1/sample'];
+  const urls = ['/', '/kit', '/llms.txt', '/openapi.json', '/v1/stats', '/v1/sample'];
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls
@@ -160,6 +202,27 @@ app.get('/report/:token', (c) => {
   c.header('X-Robots-Tag', 'noindex');
   if (c.req.query('format') === 'json') return c.json({ generated_at, count: records.length, records });
   return c.html(reportHtml({ records, stats, generated_at }));
+});
+
+// Paid: x402 endpoint preflight. A target that resolves to a blocked address returns 400 (not settled).
+app.get('/v1/x402/preflight', async (c) => {
+  const { status, body } = await preflightSafe(c.req.query('url'));
+  return c.json(body, status);
+});
+
+// ---- starter guide: free teaser, full guide behind the card checkout redirect --
+const kitCta = KIT_STRIPE_LINK
+  ? `<p><a href="${KIT_STRIPE_LINK}"><strong>Buy the full guide for $9</strong></a> (Stripe checkout, one-time, no account). You are sent straight to the guide page after payment; bookmark it.</p>`
+  : '';
+app.get('/kit', (c) => {
+  cache(c);
+  return c.html(kitTeaserHtml().replace('</h1>', `</h1>${kitCta}`));
+});
+app.get('/kit/:token', (c) => {
+  if (!KIT_TOKEN || c.req.param('token') !== KIT_TOKEN) return c.json({ error: 'not_found' }, 404);
+  c.header('Cache-Control', 'private, no-store');
+  c.header('X-Robots-Tag', 'noindex');
+  return c.html(kitHtml());
 });
 
 app.notFound((c) => c.json({ error: 'not_found' }, 404));
