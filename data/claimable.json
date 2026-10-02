@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-10-02T19:05:02.795Z",
+  "count": 3,
+  "note": "3-record sample; the live service serves the full dataset",
+  "records": [
+    {
+      "issue": "paraloom-labs/paraloom-core#839",
+      "url": "https://github.com/paraloom-labs/paraloom-core/issues/839",
+      "title": "[BOUNTY] Medium: withdraw settlement false-positive via recipient-balance polling (paraloom-wallet)",
+      "created_at": "2026-10-02T16:03:40Z",
+      "amount_usd": 150,
+      "verdict": "not_real_money",
+      "reasons": [
+        "mentions devnet/testnet/test tokens"
+      ],
+      "signals": {
+        "state": "open",
+        "repo_archived": false,
+        "repo_stars": 8,
+        "repo_created_at": "2025-03-16T19:26:09Z",
+        "assignees": [],
+        "comment_count": 4,
+        "distinct_commenters": 3,
+        "competing_prs": 0,
+        "rewarded_marker": false,
+        "start_restricted": false,
+        "test_money": true,
+        "payout_address_comments": 1
+      }
+    },
+    {
+      "issue": "ProYield-fi/pro-yield-audit#2",
+      "url": "https://github.com/ProYield-fi/pro-yield-audit/issues/2",
+      "title": "[Low] DNCoreBase.hedgeTransferOut has no per-action size bound — violates written keeper-cap claims (AUDIT_SCOPE §4 / VAULT_UNLOCK_PLAN §2)",
+      "created_at": "2026-10-01T07:54:26Z",
+      "amount_usd": 53.39,
+      "verdict": "contested",
+      "reasons": [
+        "2 distinct commenters posted claims/attempts/payout addresses"
+      ],
+      "signals": {
+        "state": "open",
+        "repo_archived": false,
+        "repo_stars": 0,
+        "repo_created_at": "2026-09-30T00:47:11Z",
+        "assignees": [],
+        "comment_count": 2,
+        "distinct_commenters": 2,
+        "competing_prs": 0,
+        "rewarded_marker": false,
+        "start_restricted": false,
+        "test_money": false,
+        "payout_address_comments": 0
+      }
+    },
+    {
+      "issue": "ZcashCommunityGrants/zcashcommunitygrants#458",
+      "url": "https://github.com/ZcashCommunityGrants/zcashcommunitygrants/issues/458",
+      "title": "Grant Application - VaihtoFX: Shielded ZEC On/Off-Ramp via M-Pesa & Airtel Money in Kenya",
+      "created_at": "2026-10-01T09:57:11Z",
+      "amount_usd": 50000,
+      "verdict": "restricted",
+      "reasons": [
+        "assigned to hhanh00, NerdGGuy, paulbrigner, ruzcash, zerodartz, alexgbo, Duhneekuh"
+      ],
+      "signals": {
+        "state": "open",
+        "repo_archived": false,
+        "repo_stars": 17,
+        "repo_created_at": "2024-12-06T21:15:19Z",
+        "assignees": [
+          "hhanh00",
+          "NerdGGuy",
+          "paulbrigner",
+          "ruzcash",
+          "zerodartz",
+          "alexgbo",
+          "Duhneekuh"
+        ],
+        "comment_count": 7,
+        "distinct_commenters": 3,
+        "competing_prs": 1,
+        "rewarded_marker": false,
+        "start_restricted": false,
+        "test_money": false,
+        "payout_address_comments": 2
+      }
+    }
+  ]
+}
