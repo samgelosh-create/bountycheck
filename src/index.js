@@ -104,8 +104,12 @@ const routes = {
 };
 
 // Bad targets are rejected for free, before the paywall, so nobody pays for a request that cannot run.
+// A bare probe with no ?url= still gets the 402 challenge, which is what discovery scanners look for;
+// a paid call without ?url= returns 400 from the handler and is not settled.
 app.use('/v1/x402/preflight', async (c, next) => {
-  const target = validateTarget(c.req.query('url') || '');
+  const raw = c.req.query('url');
+  if (!raw) return next();
+  const target = validateTarget(raw);
   if (!target.ok) {
     return c.json(
       { error: 'bad_target', reason: target.reason, hint: 'Use ?url=https://host/path of a public https endpoint' },
