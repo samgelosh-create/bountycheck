@@ -1,3 +1,5 @@
 node_modules
 .env*
 .vercel
+local_*
+indexnow_key.txt

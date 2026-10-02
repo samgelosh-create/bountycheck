@@ -128,6 +128,31 @@ app.get('/v1/check', async (c) => {
   }
 });
 
+// ---- search indexing (no account needed) -------------------------------------
+const INDEXNOW_KEY = 'df535a04286b3768db38769e63d2e8da';
+const SITE = 'https://bountycheck.vercel.app';
+app.get('/robots.txt', (c) => c.text(`User-agent: *
+Allow: /
+Disallow: /report/
+Sitemap: ${SITE}/sitemap.xml
+`));
+app.get('/sitemap.xml', (c) => {
+  const urls = ['/', '/llms.txt', '/openapi.json', '/v1/stats', '/v1/sample'];
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls
+    .map((u) => `  <url><loc>${SITE}${u}</loc><lastmod>${generated_at.slice(0, 10)}</lastmod></url>`)
+    .join('\n')}
+</urlset>
+`;
+  return c.body(body, 200, { 'Content-Type': 'application/xml' });
+});
+app.get(`/${INDEXNOW_KEY}.txt`, (c) => c.text(INDEXNOW_KEY));
+// 402index.io domain claim (public hash, not the claim token).
+app.get('/.well-known/402index-verify.txt', (c) =>
+  c.text('1e3883ca69930dacaba0e6ab685e9fdf0838c8c145c743da3c41116c6cd831f1'),
+);
+
 // ---- card buyers: Stripe redirects here after payment -------------------------
 app.get('/report/:token', (c) => {
   if (!REPORT_TOKEN || c.req.param('token') !== REPORT_TOKEN) return c.json({ error: 'not_found' }, 404);
